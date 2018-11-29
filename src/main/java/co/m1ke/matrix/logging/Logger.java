@@ -15,21 +15,21 @@ public class Logger {
         this.name = name;
     }
 
-    public void logRaw(String msg) {
+    public void raw(String msg) {
         System.out.println(msg);
     }
 
     public void log(String body) {
-        logRaw(Lang.WHITE + TimeUtil.format(System.currentTimeMillis()) + Lang.GREEN + " | " + Lang.RESET + body);
+        raw(Lang.WHITE + TimeUtil.format(System.currentTimeMillis()) + Lang.GREEN + " | " + Lang.RESET + body);
     }
 
     public void log(String color, String head, String body) {
-        logRaw(Lang.WHITE + TimeUtil.format(System.currentTimeMillis()) + Lang.GREEN + " | [" + color + head + "] " + Lang.RESET + body);
+        raw(Lang.WHITE + TimeUtil.format(System.currentTimeMillis()) + Lang.GREEN + " | [" + color + head + "] " + Lang.RESET + body);
     }
 
     public void log(boolean condition, String color, String head, String body) {
         if (condition)
-            logRaw(Lang.WHITE + TimeUtil.format(System.currentTimeMillis()) + Lang.GREEN + " | [" + color + head + "] " + Lang.RESET + body);
+            raw(Lang.WHITE + TimeUtil.format(System.currentTimeMillis()) + Lang.GREEN + " | [" + color + head + "] " + Lang.RESET + body);
     }
 
     public void info(String body) {

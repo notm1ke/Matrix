@@ -1,32 +1,40 @@
 package co.m1ke.matrix.plugin;
 
+import co.m1ke.matrix.Matrix;
+import co.m1ke.matrix.config.ConfigurationMatrix;
 import co.m1ke.matrix.error.plugin.DatabaseNotReadyException;
 import co.m1ke.matrix.event.EventManager;
+import co.m1ke.matrix.event.listener.Listener;
 import co.m1ke.matrix.logging.Logger;
 import co.m1ke.matrix.util.Database;
+import co.m1ke.matrix.util.Defaults;
+
+import java.io.File;
 
 public abstract class Plugin {
 
     private String name;
     private String author;
 
+    private ConfigurationMatrix configuration;
     private Database database;
     private Logger logger;
     private EventManager eventManager;
-    private PluginManager pluginManager;
 
     public Plugin() {
-        this.name = "Unspecified";
-        this.author = "Unspecified";
+    }
 
+    public void init(String name, String author) {
+        this.name = name;
+        this.author = author;
+
+        this.configuration = new ConfigurationMatrix(this);
         this.database = null;
         this.logger = new Logger(this.name);
-        this.eventManager = new EventManager(false);
-        this.pluginManager = new PluginManager(this.logger);
+        this.eventManager = new EventManager(this, false);
     }
 
     public void onLoad() {
-
     }
 
     public void onEnable() {
@@ -51,6 +59,10 @@ public abstract class Plugin {
         this.author = author;
     }
 
+    public ConfigurationMatrix getConfiguration() {
+        return configuration;
+    }
+
     public Database getDatabase() {
         if (database == null)
             throw new DatabaseNotReadyException("Database is not setup.", this);
@@ -70,12 +82,39 @@ public abstract class Plugin {
         this.logger = new Logger(this.name);
     }
 
+    public File getDataFolder() {
+        return new File(Defaults.PLUGINS, this.name);
+    }
+
     public EventManager getEventManager() {
         return eventManager;
     }
 
+    public void listen(Listener... listener) {
+
+        if (listener.length == 0) {
+            throw new IllegalArgumentException("Plugin#listen() cannot handle 0 arguments.");
+        }
+
+        for (Listener l : listener) {
+            this.eventManager.getEventExecutor().registerListener(l);
+        }
+    }
+
     public PluginManager getPluginManager() {
-        return pluginManager;
+        return Matrix.getPluginManager();
+    }
+
+    @Override
+    public String toString() {
+        return "Plugin{" +
+                "name='" + name + '\'' +
+                ", author='" + author + '\'' +
+                ", configuration=" + configuration +
+                ", database=" + database +
+                ", logger=" + logger +
+                ", eventManager=" + eventManager +
+                '}';
     }
 
 }

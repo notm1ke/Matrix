@@ -1,6 +1,9 @@
 package co.m1ke.matrix.plugin;
 
+import co.m1ke.matrix.Matrix;
 import co.m1ke.matrix.error.plugin.InvalidMetadataException;
+import co.m1ke.matrix.error.plugin.PluginAlreadyInitializedException;
+import co.m1ke.matrix.error.plugin.PluginNotInitializedException;
 import co.m1ke.matrix.logging.Logger;
 import co.m1ke.matrix.util.Timings;
 
@@ -21,14 +24,16 @@ import java.util.ArrayList;
 public class PluginManager {
 
     private ArrayList<Plugin> plugins;
+    private File root;
     private Logger logger;
 
-    public PluginManager(Logger logger) {
+    public PluginManager(File root, Logger logger) {
         this.plugins = new ArrayList<>();
+        this.root = root;
         this.logger = logger;
     }
 
-    public void loadAll(File root) {
+    public void loadAll() {
 
         Timings timings = new Timings("Plugin Loader", "Load plugins");
         logger.info("Attempting to load all plugins..");
@@ -83,15 +88,19 @@ public class PluginManager {
                 Plugin plugin = (Plugin) load.newInstance();
 
                 try {
-                    plugin.setName(meta.getString("name"));
-                    plugin.setAuthor(meta.getString("author"));
-
+                    plugin.init(meta.getString("name"), meta.getString("author"));
                     plugin.resetLogger();
                 } catch (JSONException e) {
                     throw new InvalidMetadataException("One or more required elements are missing from the plugin.json file.");
                 }
 
                 plugin.onLoad();
+
+                if (!plugin.getDataFolder().exists()) {
+                    plugin.getDataFolder().mkdir();
+                }
+
+                Matrix.getEventManager().registerPlugin(plugin);
 
                 plugins.add(plugin);
             } catch (Exception e) {
@@ -100,12 +109,42 @@ public class PluginManager {
                 e.printStackTrace();
             }
         }
-        timings.complete(() -> logger.info(plugins.size() + " plugins loaded."));
+        timings.complete();
 
         timings = new Timings("Plugin Loader", "Enable plugins");
         plugins.forEach(Plugin::onEnable);
         timings.complete();
 
+    }
+
+    public void enablePlugin(Plugin plugin) {
+
+        if (plugins.contains(plugin)) {
+            throw new PluginAlreadyInitializedException(plugin);
+        }
+
+        plugins.add(plugin);
+
+        plugin.onLoad();
+        plugin.onEnable();
+    }
+
+    public void disablePlugin(Plugin plugin) {
+
+        if (!plugins.contains(plugin)) {
+            throw new PluginNotInitializedException(plugin);
+        }
+
+        plugins.remove(plugin);
+        plugin.onDisable();
+    }
+
+    public ArrayList<Plugin> getPlugins() {
+        return plugins;
+    }
+
+    public File getRoot() {
+        return root;
     }
 
 }

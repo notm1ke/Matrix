@@ -4,6 +4,7 @@ import co.m1ke.matrix.event.error.ListenerAlreadyRegisteredException;
 import co.m1ke.matrix.event.interfaces.Event;
 import co.m1ke.matrix.event.interfaces.EventListener;
 import co.m1ke.matrix.logging.Logger;
+import co.m1ke.matrix.plugin.Plugin;
 import co.m1ke.matrix.util.Lang;
 
 import java.lang.reflect.Method;
@@ -25,16 +26,16 @@ public class EventExecutor {
     private final Map<Class<? extends Event>, Collection<EventHandler>> bindings;
     private final Set<EventListener> registeredListeners;
 
+    private Plugin plugin;
     private Logger logger;
 
     private boolean debug;
 
-    public EventExecutor(boolean debug) {
+    public EventExecutor(Plugin plugin, boolean debug) {
         this.bindings = new HashMap<>();
         this.registeredListeners = new HashSet<>();
         this.debug = debug;
-        this.logger = new Logger("Events");
-        logger.info("Event Manager is ready.");
+        this.logger = new Logger(plugin.getName());
     }
 
     public List<EventHandler> getListenersFor(Class<? extends Event> clazz) {
@@ -43,10 +44,10 @@ public class EventExecutor {
         return new ArrayList<>(this.bindings.get(clazz));
     }
 
-    public <T extends Event> T callEvent(T event, int i) {
+    public <T extends Event> T emit(T event, int i) {
         Collection<EventHandler> handlers = this.bindings.get(event.getClass());
         if (handlers == null) {
-            logger.log(this.debug, Lang.YELLOW, "Events", event.getClass().getSimpleName() + " called but it has no handlers.");
+            logger.log(this.debug, Lang.YELLOW, "Events", event.getClass().getSimpleName() + " was called but it has no handlers.");
             return event;
         }
         logger.log(this.debug, Lang.YELLOW, "Events", event.getClass().getSimpleName() + " has " + handlers.size() + " handlers.");
@@ -59,8 +60,8 @@ public class EventExecutor {
         }
         return event;
     }
-    public <T extends Event> T callEvent(T event) {
-        return this.callEvent(event, ALL);
+    public <T extends Event> T emit(T event) {
+        return this.emit(event, ALL);
     }
 
     public void registerListener(final EventListener listener) {
@@ -81,7 +82,7 @@ public class EventExecutor {
             Class<?> param = parameters[0];
 
             if (!method.getReturnType().equals(void.class)) {
-                logger.log(Lang.RED, "Events", "Error: Event Handler [" + method.getName() + "] in [" + listener.getClass().getSimpleName() + "] does not return void. (" + method.getReturnType().getSimpleName() + ")");
+                logger.severe("Event Handler [" + listener.getClass().getSimpleName() + "#" + method.getName() + "] does not return void. (Returns " + method.getReturnType().getSimpleName() + ")");
                 continue;
             }
 
@@ -92,7 +93,7 @@ public class EventExecutor {
                 }
                 Collection<EventHandler> eventHandlersForEvent = this.bindings.get(realParam);
                 eventHandlersForEvent.add(createEventHandler(listener, method, annotation));
-                logger.log(Lang.RED, "Events", "Event Listener [" + realParam.getSimpleName() + "] in class [" + listener.getClass().getSimpleName() + "] activated.");
+                logger.info("Listener [" + realParam.getSimpleName() + "] in [" + listener.getClass().getSimpleName() + "] activated.");
             }
         }
     }
@@ -116,6 +117,7 @@ public class EventExecutor {
     public Map<Class<? extends Event>, Collection<EventHandler>> getBindings() {
         return new HashMap<>(bindings);
     }
+
     public Set<EventListener> getRegisteredListeners() {
         return new HashSet<>(registeredListeners);
     }

@@ -33,7 +33,11 @@ public class EventHandler implements Comparable<EventHandler> {
         try {
             method.invoke(listener, event);
         } catch (Exception e) {
-            new Logger("Event Handler").severe("Error executing EventHandler " + this.listener.getClass().getSimpleName() + " (" + event.getClass().getSimpleName() + "): " + e.getMessage() + " (" + e.getClass().getName() + ")");
+            Logger l = new Logger("Event Handler");
+
+            l.severe("Error executing Event Handler " + this.listener.getClass().getSimpleName() + "#" + method.getName() + ": " + e.getMessage() + " (" + e.getClass().getName() + ")");
+            l.severe("Printing stacktrace:");
+
             e.printStackTrace();
         }
     }

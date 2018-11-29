@@ -27,7 +27,7 @@ public abstract class Listener implements EventListener {
     }
 
     public void logRaw(String msg) {
-        logger.logRaw(msg);
+        logger.raw(msg);
     }
 
     public void registerSelf() {

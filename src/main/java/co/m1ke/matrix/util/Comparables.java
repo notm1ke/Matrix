@@ -1,5 +1,8 @@
 package co.m1ke.matrix.util;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.UUID;
 
 public class Comparables {
@@ -54,6 +57,15 @@ public class Comparables {
             UUID.fromString(input);
             return true;
         } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static boolean isJson(String input) {
+        try {
+            new JSONObject(input);
+            return true;
+        } catch (JSONException e) {
             return false;
         }
     }
