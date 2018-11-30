@@ -36,7 +36,6 @@ public class PluginManager {
     public void loadAll() {
 
         Timings timings = new Timings("Plugin Loader", "Load plugins");
-        logger.info("Attempting to load all plugins..");
 
         File pluginsFolder = new File(root, "plugins");
         if (!pluginsFolder.exists()) {
@@ -88,11 +87,13 @@ public class PluginManager {
                 Plugin plugin = (Plugin) load.newInstance();
 
                 try {
-                    plugin.init(meta.getString("name"), meta.getString("author"));
+                    plugin.init(meta.getString("name"), meta.getString("author"), meta.getDouble("version"));
                     plugin.resetLogger();
                 } catch (JSONException e) {
                     throw new InvalidMetadataException("One or more required elements are missing from the plugin.json file.");
                 }
+
+                logger.info("Loading " + plugin.getName() + " v" + plugin.getVersion());
 
                 plugin.onLoad();
 
@@ -112,7 +113,10 @@ public class PluginManager {
         timings.complete();
 
         timings = new Timings("Plugin Loader", "Enable plugins");
-        plugins.forEach(Plugin::onEnable);
+        plugins.forEach(plugin -> {
+            logger.info("Enabling " + plugin.getName() + " v" + plugin.getVersion());
+            plugin.onEnable();
+        });
         timings.complete();
 
     }

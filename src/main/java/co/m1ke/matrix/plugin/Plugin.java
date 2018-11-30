@@ -15,6 +15,7 @@ public abstract class Plugin {
 
     private String name;
     private String author;
+    private double version;
 
     private ConfigurationMatrix configuration;
     private Database database;
@@ -24,9 +25,10 @@ public abstract class Plugin {
     public Plugin() {
     }
 
-    public void init(String name, String author) {
+    public void init(String name, String author, double version) {
         this.name = name;
         this.author = author;
+        this.version = version;
 
         this.configuration = new ConfigurationMatrix(this);
         this.database = null;
@@ -51,12 +53,20 @@ public abstract class Plugin {
         return author;
     }
 
+    public double getVersion() {
+        return version;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
 
     public void setAuthor(String author) {
         this.author = author;
+    }
+
+    public void setVersion(double version) {
+        this.version = version;
     }
 
     public ConfigurationMatrix getConfiguration() {
@@ -110,6 +120,7 @@ public abstract class Plugin {
         return "Plugin{" +
                 "name='" + name + '\'' +
                 ", author='" + author + '\'' +
+                ", version=" + version +
                 ", configuration=" + configuration +
                 ", database=" + database +
                 ", logger=" + logger +

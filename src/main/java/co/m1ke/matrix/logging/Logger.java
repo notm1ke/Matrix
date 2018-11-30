@@ -23,6 +23,10 @@ public class Logger {
         raw(Lang.WHITE + TimeUtil.format(System.currentTimeMillis()) + Lang.GREEN + " | " + Lang.RESET + body);
     }
 
+    public void log(LoggingLevel level, String body) {
+        raw(Lang.WHITE + TimeUtil.format(System.currentTimeMillis()) + " " + level.getColor() + level.name() + Lang.GREEN + " | " + Lang.RESET + body);
+    }
+
     public void log(String color, String head, String body) {
         raw(Lang.WHITE + TimeUtil.format(System.currentTimeMillis()) + Lang.GREEN + " | [" + color + head + "] " + Lang.RESET + body);
     }
@@ -33,19 +37,19 @@ public class Logger {
     }
 
     public void info(String body) {
-        log(Lang.GREEN + "[Info] " + Lang.WHITE + "[" + this.name + "] " + Lang.RESET + body);
+        log(LoggingLevel.INFO, Lang.WHITE + "[" + this.name + "] " + Lang.RESET + body);
     }
 
     public void debug(String body) {
-        log(Lang.GREEN + "[Debug] " + Lang.WHITE + "[" + this.name + "] " + Lang.RESET + body);
+        log(LoggingLevel.DEBUG, Lang.WHITE + "[" + this.name + "] " + Lang.RESET + body);
     }
 
     public void warning(String body) {
-        log(Lang.YELLOW + "[Warning] " + Lang.WHITE + "[" + this.name + "] " + Lang.RESET + body);
+        log(LoggingLevel.WARNING, Lang.WHITE + "[" + this.name + "] " + Lang.RESET + body);
     }
 
     public void severe(String body) {
-        log(Lang.RED + "[Severe] " + Lang.WHITE + "[" + this.name + "] " + Lang.RESET + body);
+        log(LoggingLevel.SEVERE, Lang.WHITE + "[" + this.name + "] " + Lang.RESET + body);
     }
 
     public String getName() {

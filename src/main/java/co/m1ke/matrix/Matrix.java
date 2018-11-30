@@ -20,9 +20,9 @@ public class Matrix {
     private static EventMatrix eventManager;
 
     public static void main(String[] args) {
-        Timings timings = new Timings("Base", "Initialization");
+        Timings timings = new Timings("Matrix", "Initialization");
 
-        logger = new Logger("Base");
+        logger = new Logger("Matrix");
 
         logger.raw(Lang.GREEN + "\n                            _        _      \n" +
                 "                /\\/\\   __ _| |_ _ __(_)_  __\n" +
@@ -31,6 +31,8 @@ public class Matrix {
                 "              \\/    \\/\\__,_|\\__|_|  |_/_/\\_\\\n" +
                 "                                            " + Lang.RESET);
         logger.raw("\t  Argon Development (c) " + new SimpleDateFormat("YYYY").format(new Date()) + " ―― internal use only.\n\n");
+        logger.info("Loading libraries..");
+        logger.info("This service is running Matrix version " + Defaults.VERSION + " by Argon Development.");
 
         pluginManager = new PluginManager(Defaults.ROOT, logger);
         configurationManager = new ConfigurationManager();
@@ -38,7 +40,7 @@ public class Matrix {
 
         pluginManager.loadAll();
 
-        timings.complete(() -> eventManager.emit(new ReadyEvent(System.currentTimeMillis())));
+        timings.complete(() -> eventManager.emit(new ReadyEvent(System.currentTimeMillis())), "Done (%tms)! Type `help` to view commands.");
     }
 
     public static ConfigurationManager getConfigurationManager() {
