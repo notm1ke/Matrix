@@ -26,8 +26,4 @@ public class ReadyEvent implements Event {
         return time;
     }
 
-    public void setTime(long time) {
-        this.time = time;
-    }
-
 }

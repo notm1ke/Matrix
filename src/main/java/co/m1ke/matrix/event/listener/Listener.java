@@ -31,11 +31,11 @@ public abstract class Listener implements EventListener {
     }
 
     public void registerSelf() {
-        manager.getEventExecutor().registerListener(this);
+        manager.getEventManager().registerListener(this);
     }
 
     public void unregisterSelf() {
-        manager.getEventExecutor().unregisterAll(this);
+        manager.getEventManager().unregisterAll(this);
     }
 
     public String getName() {

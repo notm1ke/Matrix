@@ -2,6 +2,8 @@ package co.m1ke.matrix.util.container;
 
 import org.json.JSONObject;
 
+import java.util.Objects;
+
 public class Key {
 
     public static final Key TRUE = new Key(true);
@@ -33,8 +35,8 @@ public class Key {
         this.value = value.toString();
     }
 
-    public static Key of(String s) {
-        return new Key(s);
+    public static Key of(Object s) {
+        return new Key(Objects.toString(s));
     }
 
     public int asInt() {

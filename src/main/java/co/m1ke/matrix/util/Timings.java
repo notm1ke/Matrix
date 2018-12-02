@@ -23,7 +23,7 @@ public class Timings {
 
     public void complete(String custom) {
         long elapsed = (System.currentTimeMillis() - start);
-        logger.info(custom.replaceAll("%t", Long.toString(elapsed)));
+        logger.info(parse(custom, elapsed));
     }
 
     public void complete(Callback callback) {
@@ -34,8 +34,13 @@ public class Timings {
 
     public void complete(Callback callback, String custom) {
         long elapsed = (System.currentTimeMillis() - start);
-        logger.info(custom.replaceAll("%t", Long.toString(elapsed)));
+        logger.info(parse(custom, elapsed));
         callback.complete();
+    }
+
+    private String parse(String input, long elapsed) {
+        return input.replaceAll("%t", Long.toString(elapsed))
+                .replaceAll("%c", Lang.getColorForElaspedTime(elapsed));
     }
 
 }

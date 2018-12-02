@@ -22,7 +22,7 @@ public class EventMatrix {
     }
 
     public void emit(Event event) {
-        this.eventManagers.forEach((p, e) -> e.getEventExecutor().emit(event));
+        this.eventManagers.forEach((p, e) -> e.getEventManager().emit(event));
     }
 
     public void unregisterPlugin(Plugin plugin) {
@@ -51,7 +51,7 @@ public class EventMatrix {
             throw new PluginEventManagerException(plugin);
         }
 
-        manager.getEventExecutor().unregisterAll();
+        manager.getEventManager().unregisterAll();
     }
 
     public HashMap<Plugin, EventManager> getEventManagers() {

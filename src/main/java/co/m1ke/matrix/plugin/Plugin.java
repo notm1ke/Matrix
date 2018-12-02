@@ -1,7 +1,9 @@
 package co.m1ke.matrix.plugin;
 
 import co.m1ke.matrix.Matrix;
-import co.m1ke.matrix.config.ConfigurationMatrix;
+import co.m1ke.matrix.config.ConfigurationManager;
+import co.m1ke.matrix.error.MatrixExceptionImpl;
+import co.m1ke.matrix.error.plugin.ConfigNotReadyException;
 import co.m1ke.matrix.error.plugin.DatabaseNotReadyException;
 import co.m1ke.matrix.event.EventManager;
 import co.m1ke.matrix.event.listener.Listener;
@@ -15,9 +17,10 @@ public abstract class Plugin {
 
     private String name;
     private String author;
+    private boolean debug;
     private double version;
 
-    private ConfigurationMatrix configuration;
+    private ConfigurationManager configuration;
     private Database database;
     private Logger logger;
     private EventManager eventManager;
@@ -25,15 +28,16 @@ public abstract class Plugin {
     public Plugin() {
     }
 
-    public void init(String name, String author, double version) {
+    public void init(String name, String author, boolean debug, double version) {
         this.name = name;
         this.author = author;
+        this.debug = debug;
         this.version = version;
 
-        this.configuration = new ConfigurationMatrix(this);
         this.database = null;
         this.logger = new Logger(this.name);
-        this.eventManager = new EventManager(this, false);
+        this.eventManager = new EventManager(this, this.debug);
+        this.configuration = new ConfigurationManager(this);
     }
 
     public void onLoad() {
@@ -65,11 +69,17 @@ public abstract class Plugin {
         this.author = author;
     }
 
+    public boolean isDebug() {
+        return debug;
+    }
+
     public void setVersion(double version) {
         this.version = version;
     }
 
-    public ConfigurationMatrix getConfiguration() {
+    public ConfigurationManager getConfiguration() {
+        if (configuration == null)
+            throw new ConfigNotReadyException("Configuration Manager is not ready.", this);
         return configuration;
     }
 
@@ -100,14 +110,12 @@ public abstract class Plugin {
         return eventManager;
     }
 
-    public void listen(Listener... listener) {
-
-        if (listener.length == 0) {
-            throw new IllegalArgumentException("Plugin#listen() cannot handle 0 arguments.");
+    public void listen(Listener... listeners) {
+        if (listeners.length == 0) {
+            throw new MatrixExceptionImpl("Listener vararg cannot be empty.");
         }
-
-        for (Listener l : listener) {
-            this.eventManager.getEventExecutor().registerListener(l);
+        for (Listener l : listeners) {
+            this.eventManager.getEventManager().registerListener(l);
         }
     }
 
@@ -121,10 +129,10 @@ public abstract class Plugin {
                 "name='" + name + '\'' +
                 ", author='" + author + '\'' +
                 ", version=" + version +
-                ", configuration=" + configuration +
+                ", configuration=" + configuration.toJson() +
                 ", database=" + database +
-                ", logger=" + logger +
-                ", eventManager=" + eventManager +
+                ", logger=" + logger.toJson() +
+                ", eventManager=" + eventManager.toJson() +
                 '}';
     }
 

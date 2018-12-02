@@ -5,7 +5,6 @@ import co.m1ke.matrix.event.interfaces.Event;
 import co.m1ke.matrix.event.interfaces.EventListener;
 import co.m1ke.matrix.logging.Logger;
 import co.m1ke.matrix.plugin.Plugin;
-import co.m1ke.matrix.util.Lang;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -34,6 +33,7 @@ public class EventExecutor {
     public EventExecutor(Plugin plugin, boolean debug) {
         this.bindings = new HashMap<>();
         this.registeredListeners = new HashSet<>();
+        this.plugin = plugin;
         this.debug = debug;
         this.logger = new Logger(plugin.getName());
     }
@@ -47,10 +47,9 @@ public class EventExecutor {
     public <T extends Event> T emit(T event, int i) {
         Collection<EventHandler> handlers = this.bindings.get(event.getClass());
         if (handlers == null) {
-            logger.log(this.debug, Lang.YELLOW, "Events", event.getClass().getSimpleName() + " was called but it has no handlers.");
+            logger.debug(event.getClass().getSimpleName() + " was called but it has no handlers.", this.debug);
             return event;
         }
-        logger.log(this.debug, Lang.YELLOW, "Events", event.getClass().getSimpleName() + " has " + handlers.size() + " handlers.");
         for (EventHandler handler : handlers) {
             if (i == PRE && handler.getPriority() >= 0)
                 continue;
@@ -82,7 +81,7 @@ public class EventExecutor {
             Class<?> param = parameters[0];
 
             if (!method.getReturnType().equals(void.class)) {
-                logger.severe("Event Handler [" + listener.getClass().getSimpleName() + "#" + method.getName() + "] does not return void. (Returns " + method.getReturnType().getSimpleName() + ")");
+                logger.severe("Event Handler " + listener.getClass().getSimpleName() + "#" + method.getName() + " does not return void. (Returns " + method.getReturnType().getSimpleName() + ")");
                 continue;
             }
 
@@ -93,7 +92,7 @@ public class EventExecutor {
                 }
                 Collection<EventHandler> eventHandlersForEvent = this.bindings.get(realParam);
                 eventHandlersForEvent.add(createEventHandler(listener, method, annotation));
-                logger.info("Listener [" + realParam.getSimpleName() + "] in [" + listener.getClass().getSimpleName() + "] activated.");
+                logger.info("Listener " + listener.getClass().getSimpleName() + "#" + method.getName() + " activated.", this.debug);
             }
         }
     }

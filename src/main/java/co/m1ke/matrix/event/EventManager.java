@@ -1,17 +1,19 @@
 package co.m1ke.matrix.event;
 
-import co.m1ke.matrix.event.listener.Listener;
 import co.m1ke.matrix.event.listener.ListenerAdapter;
 import co.m1ke.matrix.plugin.Plugin;
+import co.m1ke.matrix.util.JsonSerializable;
 
-public class EventManager {
+import org.json.JSONObject;
+
+public class EventManager implements JsonSerializable {
 
     private Plugin plugin;
     private EventExecutor eventExecutor;
     private ListenerAdapter listenerAdapter;
     private boolean debug;
 
-    public EventManager(Plugin plugin, boolean debug, Listener... listeners) {
+    public EventManager(Plugin plugin, boolean debug) {
         this.plugin = plugin;
         this.debug = debug;
 
@@ -19,20 +21,18 @@ public class EventManager {
 
         this.eventExecutor = new EventExecutor(plugin, debug);
         this.listenerAdapter = new ListenerAdapter();
-
-        for (Listener listener : listeners) {
-            this.listenerAdapter.register(listener);
-        }
-
-        this.listenerAdapter.loadAll();
     }
 
     public Plugin getPlugin() {
         return plugin;
     }
 
-    public EventExecutor getEventExecutor() {
+    public EventExecutor getEventManager() {
         return eventExecutor;
+    }
+
+    public ListenerAdapter getListenerManager() {
+        return listenerAdapter;
     }
 
     public boolean isDebug() {
@@ -41,6 +41,12 @@ public class EventManager {
 
     public void setDebug(boolean debug) {
         this.debug = debug;
+    }
+
+    @Override
+    public JSONObject toJson() {
+        return new JSONObject()
+                .put("debug", this.debug);
     }
 
 }

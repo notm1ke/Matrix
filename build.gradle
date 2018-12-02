@@ -20,7 +20,7 @@ dependencies {
 
     compile("com.google.guava:guava:23.5-jre")
     compile("com.google.code.gson:gson:2.8.2")
-
+    
     compile('mysql:mysql-connector-java:5.1.40')
 
     compile("commons-codec:commons-codec:1.11")

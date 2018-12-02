@@ -1,6 +1,7 @@
 package co.m1ke.matrix.config;
 
 import co.m1ke.matrix.plugin.Plugin;
+import co.m1ke.matrix.util.JsonSerializable;
 import co.m1ke.matrix.util.JsonUtils;
 import co.m1ke.matrix.util.container.Key;
 
@@ -10,7 +11,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
-public class Configuration {
+public class Configuration implements JsonSerializable {
 
     private Plugin plugin;
     private File file;
@@ -27,13 +28,13 @@ public class Configuration {
     }
 
     public static Configuration of(Plugin plugin, File file) {
-        return new Configuration(plugin, file, JsonUtils.readFromFile(file));
+        return new Configuration(plugin, file, JsonUtils.getFromFile(file));
     }
 
     public Key getKey(String path) {
         if (body.isNull(path))
             return null;
-        return Key.of(body.getString(path));
+        return Key.of(body.get(path));
     }
 
     public void set(String path, Key key) {
@@ -44,7 +45,7 @@ public class Configuration {
         PrintWriter writer = new PrintWriter(this.file);
 
         writer.write("");
-        writer.write(this.body.toString());
+        writer.write(this.body.toString(3));
         writer.close();
     }
 
@@ -58,6 +59,13 @@ public class Configuration {
 
     public JSONObject getBody() {
         return body;
+    }
+
+    @Override
+    public JSONObject toJson() {
+        return new JSONObject()
+                .put("file", this.file)
+                .put("body", this.body);
     }
 
 }

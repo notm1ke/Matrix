@@ -1,11 +1,13 @@
 package co.m1ke.matrix.util;
 
+import co.m1ke.matrix.error.json.JsonExplodeException;
+
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -15,7 +17,7 @@ import java.nio.charset.Charset;
 
 public class JsonUtils {
 
-    private String readAll(Reader rd) throws IOException {
+    private static String readAll(Reader rd) throws IOException {
         StringBuilder sb = new StringBuilder();
         int cp;
         while ((cp = rd.read()) != -1) {
@@ -25,7 +27,7 @@ public class JsonUtils {
     }
 
 
-    public JSONObject readFromUrl(String url) throws Exception {
+    public static JSONObject getFromUrl(String url) throws Exception {
         InputStream is = new URL(url).openStream();
         try {
             BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
@@ -36,21 +38,27 @@ public class JsonUtils {
         }
     }
 
-    public static JSONObject readFromFile(File file) {
+    public static JSONObject getFromFile(File file) {
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(file.getName()));
+            InputStream is = new FileInputStream(file);
+            String text = IOUtils.toString(is, "UTF-8");
 
-            if (!Comparables.isJson(IOUtils.toString(reader))) {
+            if (!Comparables.isJson(text)) {
                 return null;
             }
 
-            JSONObject obj = new JSONObject(IOUtils.toString(reader));
-            reader.close();
+            JSONObject obj = new JSONObject(text);
+            is.close();
 
             return obj;
         } catch (IOException e) {
+            e.printStackTrace();
             return null;
         }
+    }
+
+    public static JSONObject explode(JSONObject object) throws JsonExplodeException {
+        throw new JsonExplodeException("stop");
     }
 
 }

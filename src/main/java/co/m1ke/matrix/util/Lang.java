@@ -45,6 +45,8 @@ public class Lang {
     public static final String MODULE = RESET + "%s";
     public static final String HELP = RESET + "Invalid usage: %s";
 
+    public static final String DIVIDER = Lang.WHITE + "-------------------------------------------------" + Lang.RESET;
+
     public static String generate(String head, String body) {
         return String.format(MODULE, body);
     }
