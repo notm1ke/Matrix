@@ -3,6 +3,7 @@ package co.m1ke.matrix.config;
 import co.m1ke.matrix.config.filter.JsonFilter;
 import co.m1ke.matrix.logging.Logger;
 import co.m1ke.matrix.plugin.Plugin;
+import co.m1ke.matrix.plugin.self.MatrixPlugin;
 import co.m1ke.matrix.util.JsonSerializable;
 import co.m1ke.matrix.util.JsonUtils;
 import co.m1ke.matrix.util.Lang;
@@ -24,6 +25,11 @@ public class ConfigurationManager implements JsonSerializable {
     private Plugin plugin;
 
     public ConfigurationManager(Plugin plugin) {
+
+        if (plugin instanceof MatrixPlugin) {
+            return;
+        }
+
         this.plugin = plugin;
         this.configurations = new HashMap<>();
 

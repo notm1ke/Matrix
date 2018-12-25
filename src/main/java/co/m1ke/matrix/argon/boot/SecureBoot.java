@@ -8,7 +8,7 @@ public class SecureBoot {
 
     public SecureBoot() {
         this.logger = new Logger("Boot");
-        logger.warning("SecureBoot is not ready.");
+        logger.severe("SecureBoot is not ready.");
     }
 
 }

@@ -9,11 +9,10 @@ public class JavaUtils {
 
     public static Class<?> getCaller() {
         final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        String clazzName = stackTrace[3].getClassName();
+        String clazzName = stackTrace[stackTrace.length - 1].getClassName();
         try {
             return Class.forName(clazzName);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
             return null;
         }
     }

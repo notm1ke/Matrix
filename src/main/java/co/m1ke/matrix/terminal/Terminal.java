@@ -1,6 +1,8 @@
 package co.m1ke.matrix.terminal;
 
 import co.m1ke.matrix.Matrix;
+import co.m1ke.matrix.closable.Closable;
+import co.m1ke.matrix.closable.ClosableOverride;
 import co.m1ke.matrix.logging.Logger;
 import co.m1ke.matrix.terminal.defaults.AboutCommand;
 import co.m1ke.matrix.terminal.defaults.ClearCommand;
@@ -16,7 +18,7 @@ import co.m1ke.matrix.util.Timings;
 import java.util.HashMap;
 import java.util.Scanner;
 
-public class Terminal {
+public class Terminal implements Closable, ClosableOverride {
 
     private HashMap<String, TerminalCommand> registeredCommands;
 
@@ -78,6 +80,17 @@ public class Terminal {
         for (TerminalCommand cmd : commands) {
             register(cmd);
         }
+    }
+
+    @Override
+    public void close() {
+
+        logger.warning("Terminal priority interrupted.");
+
+        this.terminalThread.interrupt();
+        this.terminalThread = null;
+
+        this.registeredCommands.clear();
     }
 
     public HashMap<String, TerminalCommand> getCommands() {

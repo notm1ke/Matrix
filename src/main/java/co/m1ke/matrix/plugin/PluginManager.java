@@ -1,12 +1,17 @@
 package co.m1ke.matrix.plugin;
 
 import co.m1ke.matrix.Matrix;
+import co.m1ke.matrix.closable.Closable;
+import co.m1ke.matrix.closable.ClosableOverride;
 import co.m1ke.matrix.error.MatrixException;
 import co.m1ke.matrix.error.plugin.InvalidMetadataException;
 import co.m1ke.matrix.error.plugin.PluginAlreadyInitializedException;
 import co.m1ke.matrix.error.plugin.PluginNotInitializedException;
 import co.m1ke.matrix.logging.Logger;
+import co.m1ke.matrix.plugin.self.MatrixPlugin;
+import co.m1ke.matrix.util.JavaUtils;
 import co.m1ke.matrix.util.Lang;
+import co.m1ke.matrix.util.TimeUtil;
 import co.m1ke.matrix.util.Timings;
 
 import org.apache.commons.io.FilenameUtils;
@@ -23,7 +28,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 
-public class PluginManager {
+public class PluginManager implements Closable, ClosableOverride {
 
     private ArrayList<Plugin> plugins;
     private File root;
@@ -37,17 +42,17 @@ public class PluginManager {
 
     public void loadAll() {
         Timings timings = new Timings("Plugins", "Initialization");
+        logger.unlisted(Lang.DIVIDER);
 
         new Thread(() -> {
             File pluginsFolder = new File(root, "plugins");
             if (!pluginsFolder.exists()) {
                 try {
                     if (!pluginsFolder.mkdir()) {
-                        throw new IOException("Error creating plugins directory.");
+                        throw new IOException("Error creating directory");
                     }
                 } catch (IOException e) {
-                    logger.severe("Unable to load or create plugins directory. Aborting with exit code -1.");
-                    e.printStackTrace();
+                    logger.except(e, "Unable to load or create plugins directory");
                     System.exit(-1);
                     return;
                 }
@@ -70,15 +75,15 @@ public class PluginManager {
                     InputStream in = child.getResourceAsStream("plugin.json");
                     BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 
-                    JSONObject meta = null;
+                    JSONObject meta;
                     try {
                         meta = new JSONObject(IOUtils.toString(reader));
                     } catch (JSONException e) {
-                        logger.severe("Could not load [" + f.getName() + "] because their plugin metadata file is not valid.");
+                        logger.severe("Could not load [" + f.getName() + "] because their plugin manifest file is illegible.");
                         continue;
                     }
 
-                    Class load = null;
+                    Class load;
                     try {
                         load = Class.forName(meta.getString("main"), true, child);
                     } catch (ClassNotFoundException e) {
@@ -92,10 +97,15 @@ public class PluginManager {
                         plugin.init(meta.getString("name"), meta.getString("author"), meta.getBoolean("debug"), meta.getDouble("version"));
                         plugin.resetLogger();
                     } catch (JSONException e) {
-                        throw new InvalidMetadataException("One or more required elements are missing from the plugin.json file.");
+                        throw new InvalidMetadataException("One or more required elements are missing from the plugin manifest file.");
                     }
 
                     logger.info("Loading " + plugin.getName() + " v" + plugin.getVersion());
+
+                    if (plugins.stream().anyMatch(p -> p.getName().equalsIgnoreCase(plugin.getName()))) {
+                        logger.severe("Ambiguous plugin " + plugin.getName() + ", refusing to load.");
+                        continue;
+                    }
 
                     try {
                         plugin.onLoad();
@@ -104,7 +114,7 @@ public class PluginManager {
                         continue;
                     }
 
-                    if (!plugin.getDataFolder().exists()) {
+                    if (!plugin.getDataFolder().exists() && !(plugin instanceof MatrixPlugin)) {
                         plugin.getDataFolder().mkdir();
                     }
 
@@ -120,14 +130,33 @@ public class PluginManager {
 
             ArrayList<Plugin> pendingDeath = new ArrayList<>();
 
+            plugins.add(Matrix.getSelfPlugin());
+
+            Plugin mp = plugins.get(plugins.size() - 1);
+            logger.info("Loading " + mp.getName() + " v" + mp.getVersion());
+            mp.onLoad();
+            mp.resetLogger();
+
+            Timings mpt = new Timings("Plugins", "Enable");
+
+            logger.info("Enabling " + mp.getName() + " v" + mp.getVersion());
+            mp.onEnable();
+            mpt.complete("Enabled " + mp.getName() + " in %c%tms" + Lang.RESET + ".");
+
             for (Plugin plugin : plugins) {
+                if (plugin instanceof MatrixPlugin) {
+                    continue;
+                }
+                Timings enable = new Timings("Plugins", "Enable");
                 logger.info("Enabling " + plugin.getName() + " v" + plugin.getVersion());
-                logger.unlisted(Lang.DIVIDER);
 
                 try {
                     plugin.onEnable();
+                    enable.complete("Enabled " + plugin.getName() + " in %c%tms" + Lang.RESET + ".");
                 } catch (MatrixException e) {
-                    logger.except(e, "Error enabling " + plugin.getName());
+                    logger.severe("An error occurred while enabling [" + plugin.getName() + "].");
+                    logger.severe("Printing stacktrace:");
+                    e.printStackTrace();
                     pendingDeath.add(plugin);
                     continue;
                 }
@@ -138,17 +167,23 @@ public class PluginManager {
             }
 
             for (Plugin plugin : pendingDeath) {
-                this.disablePlugin(plugin);
+                this.disable(plugin);
             }
+
+            logger.unlisted(Lang.DIVIDER);
+            logger.warning("Failed to load " + pendingDeath.size() + " plugin" + TimeUtil.numberEnding(pendingDeath.size()) + ".", pendingDeath.size() >= 1);
 
             pendingDeath.clear();
 
-            logger.unlisted(Lang.DIVIDER);
             timings.complete("Loaded all plugins in %c%tms" + Lang.RESET + ".");
         }, "Plugin Manager Thread").run();
     }
 
-    public void enablePlugin(Plugin plugin) {
+    public void enable(Plugin plugin) {
+
+        if (checkPermissions(plugin)) {
+            return;
+        }
 
         if (plugins.contains(plugin)) {
             throw new PluginAlreadyInitializedException(plugin);
@@ -156,15 +191,22 @@ public class PluginManager {
 
         plugins.add(plugin);
 
-        plugin.onLoad();
-        plugin.onEnable();
+        new Thread(() -> {
+            plugin.onLoad();
+            plugin.onEnable();
+        }, plugin.getName() + " Startup Thread").run();
     }
 
-    public void disablePlugin(Plugin plugin) {
+    public void disable(Plugin plugin) {
+
+        if (checkPermissions(plugin)) return;
 
         if (!plugins.contains(plugin)) {
             throw new PluginNotInitializedException(plugin);
         }
+
+        Timings t = new Timings("Plugins", "Disable");
+        logger.info("Disabling " + plugin.getName() + " v" + plugin.getVersion());
 
         plugins.remove(plugin);
         plugin.getConfiguration().getConfigurations().forEach((s, c) -> {
@@ -175,6 +217,34 @@ public class PluginManager {
             }
         });
         plugin.onDisable();
+        t.complete("Disabled " + plugin.getName() + " in %c%tms" + Lang.RESET + ".");
+    }
+
+    public Plugin get(Class<? extends Plugin> clazz) {
+        return plugins.stream().findFirst().filter(p -> p.getClass().equals(clazz)).orElse(null);
+    }
+
+    private boolean checkPermissions(Plugin plugin) {
+        if (plugin instanceof MatrixPlugin) {
+            Class<?> caller = JavaUtils.getCaller();
+            if (caller != Matrix.class) {
+                if (caller == null) {
+                    return true;
+                }
+                logger.severe(caller.getSimpleName() + " is not permitted to alter " + plugin.getClass().getSimpleName() + ".");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void close() {
+        ArrayList<Plugin> temp = plugins;
+        for (Plugin plugin : temp) {
+            this.disable(plugin);
+        }
+        temp.clear();
     }
 
     public ArrayList<Plugin> getPlugins() {

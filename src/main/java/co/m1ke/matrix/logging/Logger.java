@@ -32,20 +32,11 @@ public class Logger implements JsonSerializable {
     }
 
     public void log(LoggingLevel level, String body) {
-
-        int spacing = 0;
-        if (level == LoggingLevel.INFO || level == LoggingLevel.WARNING)
-            spacing = 3;
-        if (level == LoggingLevel.DEBUG)
-            spacing = 2;
-        if (level == LoggingLevel.SEVERE)
-            spacing = 1;
-
-        raw(Lang.WHITE + TimeUtil.format(System.currentTimeMillis()) + " " + level.getColor() + level.getName() + Lang.GREEN + " " + StringUtils.repeat(' ', spacing) + "| " + Lang.RESET + body);
+        raw(Lang.WHITE + TimeUtil.format(System.currentTimeMillis()) + " " + level.getColor() + level.getName() + Lang.YELLOW + StringUtils.repeat(' ', level.getSpaces()) + "| " + Lang.RESET + body);
     }
 
     public void log(String color, String head, String body) {
-        raw(Lang.WHITE + TimeUtil.format(System.currentTimeMillis()) + Lang.GREEN + " | [" + color + head + "] " + Lang.RESET + body);
+        raw(Lang.WHITE + TimeUtil.format(System.currentTimeMillis()) + Lang.YELLOW + " | [" + color + head + "] " + Lang.RESET + body);
     }
 
     public void log(boolean condition, String color, String head, String body) {
@@ -96,6 +87,10 @@ public class Logger implements JsonSerializable {
     public void severe(String body, boolean condition) {
         if (condition)
             this.severe(body);
+    }
+
+    public void except(Exception e) {
+        log(LoggingLevel.SEVERE, Lang.WHITE + "[" + this.name + "] " + Lang.RESET + e.getMessage() + " (" + e.getClass().getName() + ")");
     }
 
     public void except(Exception e, String base) {

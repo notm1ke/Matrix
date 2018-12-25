@@ -85,16 +85,15 @@ public class Database {
         }
     }
 
-    public Connection connect() {
+    public void connect() {
         try {
             Class.forName("com.mysql.jdbc.Driver").newInstance();
             connection = DriverManager.getConnection("jdbc:mysql://" + preferences.getDatabaseHost() + ":" + preferences.getDatabasePort() + "/" + preferences.getDatabase() + "?autoReconnect=true", preferences.getDatabaseUser(), preferences.getDatabasePassword());
             logger.info("Connected to the database.");
         } catch (Exception e) {
-            logger.severe("Error connecting to the database.");
+            logger.except(e, "Error connecting to the database");
             System.exit(-1);
         }
-        return null;
     }
 
     public boolean disconnect() {
@@ -164,7 +163,7 @@ public class Database {
             Statement statement = rs.getStatement();
             if (rs != null) rs.close();
             if (statement != null) statement.close();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
     }
 

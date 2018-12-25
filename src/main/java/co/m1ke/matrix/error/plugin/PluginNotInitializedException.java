@@ -8,7 +8,7 @@ public class PluginNotInitializedException extends MatrixException {
     private Plugin origin;
 
     public PluginNotInitializedException(Plugin origin) {
-        super("Plugin [" + origin.getName() + "] has not yet been initialized.");
+        super(origin.getName() + " has not been initialized.");
         this.origin = origin;
     }
 

@@ -1,6 +1,7 @@
 package co.m1ke.matrix.config;
 
 import co.m1ke.matrix.Matrix;
+import co.m1ke.matrix.closable.Closable;
 import co.m1ke.matrix.config.filter.JsonFilter;
 import co.m1ke.matrix.logging.Logger;
 import co.m1ke.matrix.plugin.Plugin;
@@ -15,7 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-public class ConfigurationMatrix {
+public class ConfigurationMatrix implements Closable {
 
     private HashMap<Plugin, ArrayList<Configuration>> configs = new HashMap<>();
     private Logger logger;
@@ -55,6 +56,11 @@ public class ConfigurationMatrix {
 
     public ArrayList<Configuration> getConfigurations(Plugin plugin) {
         return configs.getOrDefault(plugin, new ArrayList<>());
+    }
+
+    @Override
+    public void close() {
+        this.configs.clear();
     }
 
 }

@@ -2,7 +2,6 @@ package co.m1ke.matrix.plugin;
 
 import co.m1ke.matrix.Matrix;
 import co.m1ke.matrix.config.ConfigurationManager;
-import co.m1ke.matrix.error.MatrixExceptionImpl;
 import co.m1ke.matrix.error.plugin.ConfigNotReadyException;
 import co.m1ke.matrix.error.plugin.DatabaseNotReadyException;
 import co.m1ke.matrix.event.EventManager;
@@ -10,6 +9,7 @@ import co.m1ke.matrix.event.listener.Listener;
 import co.m1ke.matrix.logging.Logger;
 import co.m1ke.matrix.util.Database;
 import co.m1ke.matrix.util.Defaults;
+import co.m1ke.matrix.util.Validate;
 
 import java.io.File;
 
@@ -111,9 +111,7 @@ public abstract class Plugin {
     }
 
     public void listen(Listener... listeners) {
-        if (listeners.length == 0) {
-            throw new MatrixExceptionImpl("Listener vararg cannot be empty.");
-        }
+        Validate.checkArgument(listeners.length == 0, "Listeners cannot be empty");
         for (Listener l : listeners) {
             this.eventManager.getEventManager().registerListener(l);
         }

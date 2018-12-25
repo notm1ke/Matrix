@@ -2,7 +2,6 @@ package co.m1ke.matrix.argon;
 
 import co.m1ke.matrix.Matrix;
 import co.m1ke.matrix.event.events.uplink.ArgonUplinkEvent;
-import co.m1ke.matrix.event.events.uplink.ArgonUplinkFailureEvent;
 import co.m1ke.matrix.logging.Logger;
 import co.m1ke.matrix.util.Defaults;
 import co.m1ke.matrix.util.JsonUtils;
@@ -33,8 +32,9 @@ public class Uplink {
             logger.info("Uplink -> Connected via Cloud (" + res.getString("instance") + ") version " + res.getDouble("version") + ".");
             Matrix.getEventManager().emit(new ArgonUplinkEvent());
         } catch (Exception e) {
-            logger.except(e, "Failed to retrieve cloud uplink");
-            Matrix.getEventManager().emit(new ArgonUplinkFailureEvent(e));
+            logger.severe("Uplink is not ready.");
+            /*logger.except(e, "Failed to retrieve cloud uplink");
+            Matrix.getEventManager().emit(new ArgonUplinkFailureEvent(e));*/
         }
     }
 

@@ -15,7 +15,6 @@ public class StopCommand extends TerminalCommand {
             log(getHelp());
             return;
         }
-        log("Matrix service stopped.");
         System.exit(-1);
     }
 

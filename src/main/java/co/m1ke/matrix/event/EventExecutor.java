@@ -5,6 +5,7 @@ import co.m1ke.matrix.event.interfaces.Event;
 import co.m1ke.matrix.event.interfaces.EventListener;
 import co.m1ke.matrix.logging.Logger;
 import co.m1ke.matrix.plugin.Plugin;
+import co.m1ke.matrix.util.Lang;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -81,7 +82,7 @@ public class EventExecutor {
             Class<?> param = parameters[0];
 
             if (!method.getReturnType().equals(void.class)) {
-                logger.severe("Event Handler " + listener.getClass().getSimpleName() + "#" + method.getName() + " does not return void. (Returns " + method.getReturnType().getSimpleName() + ")");
+                logger.severe("Event Handler " + Lang.CYAN + listener.getClass().getSimpleName() + "." + method.getName() + "()" + Lang.RESET + " does not return void. (Returns " + method.getReturnType().getSimpleName() + ")");
                 continue;
             }
 
@@ -92,7 +93,7 @@ public class EventExecutor {
                 }
                 Collection<EventHandler> eventHandlersForEvent = this.bindings.get(realParam);
                 eventHandlersForEvent.add(createEventHandler(listener, method, annotation));
-                logger.info("Listener " + listener.getClass().getSimpleName() + "#" + method.getName() + " activated.", this.debug);
+                logger.info("Listener " + Lang.CYAN + listener.getClass().getSimpleName() + "." + method.getName() + "() " + Lang.RESET + "activated.", this.debug);
             }
         }
     }

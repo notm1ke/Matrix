@@ -1,5 +1,7 @@
 package co.m1ke.matrix.event;
 
+import co.m1ke.matrix.closable.Closable;
+import co.m1ke.matrix.closable.ClosableOverride;
 import co.m1ke.matrix.error.plugin.PluginEventManagerException;
 import co.m1ke.matrix.event.interfaces.Event;
 import co.m1ke.matrix.plugin.Plugin;
@@ -7,7 +9,7 @@ import co.m1ke.matrix.plugin.PluginManager;
 
 import java.util.HashMap;
 
-public class EventMatrix {
+public class EventMatrix implements Closable, ClosableOverride {
 
     private HashMap<Plugin, EventManager> eventManagers = new HashMap<>();
 
@@ -52,6 +54,14 @@ public class EventMatrix {
         }
 
         manager.getEventManager().unregisterAll();
+    }
+
+    @Override
+    public void close() {
+        this.eventManagers.clear();
+
+        this.eventManagers = null;
+        this.pluginManager = null;
     }
 
     public HashMap<Plugin, EventManager> getEventManagers() {
